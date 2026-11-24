@@ -256,6 +256,10 @@
   .ctlbtn:hover{border-color:var(--indigo); color:var(--indigo);}
   .ctlbtn:active{transform:scale(.94);}
   .ctlbtn.playing{border-color:var(--indigo); color:var(--indigo);}
+  /* 回饋列的喇叭：按下要有明顯反應 */
+  .speak.playing{background:var(--indigo); border-color:var(--indigo); color:#fff;
+    transform:scale(1.06); animation:spk .45s ease-out;}
+  @keyframes spk{0%{box-shadow:0 0 0 0 rgba(44,62,107,.45)}100%{box-shadow:0 0 0 12px rgba(44,62,107,0)}}
   #writeNextBtn{width:100%; margin-top:12px; min-height:46px;}
 
   /* write pad */
@@ -423,7 +427,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.2.1</span>
+        <span class="ver" id="verTag">1.2.2</span>
         <button class="iconbtn" id="chartBtn" title="假名表（溫習用）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
         </button>
@@ -1487,7 +1491,11 @@
         : '');
     if(withSpeak){
       el.querySelectorAll('.speak').forEach(b=>{
-        b.onclick = ()=> speak(speakKana||current.k, b.dataset.sp==='2');
+        b.onclick = ()=>{
+          b.classList.remove('playing'); void b.offsetWidth; b.classList.add('playing');
+          clearTimeout(b._t); b._t = setTimeout(()=>b.classList.remove('playing'), 800);
+          speak(speakKana||current.k, b.dataset.sp==='2');
+        };
       });
     }
   }
@@ -1769,7 +1777,7 @@
     voiceMode = voiceMode === 'f' ? 'm' : 'f';
     localStorage.setItem('kanaVoice', voiceMode);
     applyVoiceBtn();
-    if(current) speak(current.k);
+    if(current && mode!=='read') speak(current.k);   // 羅馬拼音模式：唔出聲，否則等於講答案
   });
   applyVoiceBtn();
 
@@ -1782,7 +1790,7 @@
     slowMode = !slowMode;
     localStorage.setItem('kanaSlow', slowMode?'1':'0');
     applySlow();
-    if(current) speak(current.k);
+    if(current && mode!=='read') speak(current.k);   // 同上：羅馬拼音模式唔讀題目
   });
 
   // ── 靜音（全站：真人音檔 + TTS）────────────────────────
