@@ -404,13 +404,6 @@
   .stat .n.g{color:var(--green);} .stat .n.r{color:var(--red);} .stat .n.v{color:var(--vermilion);}
   .stat .l{font-size:11px; color:var(--ink-soft); letter-spacing:.04em;}
 
-  .prog-link{display:block; margin:10px auto 4px; background:none; border:none; padding:6px 10px;
-    font:inherit; font-size:11.5px; color:#a89e8a; text-decoration:underline; text-underline-offset:3px; cursor:pointer}
-  .prog-body{padding:4px 20px 22px; display:flex; flex-direction:column; gap:9px}
-  .prog-body textarea{width:100%; min-height:88px; resize:vertical; font-family:ui-monospace,Menlo,monospace;
-    font-size:11.5px; line-height:1.5; padding:10px 12px; border:1px solid var(--line); border-radius:12px;
-    background:#fffdf8; color:var(--ink); word-break:break-all}
-  .prog-msg{font-size:12px; color:var(--ink-soft); min-height:16px}
   footer{text-align:center; font-size:11.5px; color:#b6ac99; padding-top:2px; letter-spacing:.03em;}
 
   @media (max-width:400px){
@@ -430,7 +423,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.2</span>
+        <span class="ver" id="verTag">1.2.1</span>
         <button class="iconbtn" id="chartBtn" title="假名表（溫習用）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
         </button>
@@ -566,30 +559,6 @@
     </div>
 
     <footer>語音：Azure Speech（ja-JP-MayuNeural，預製 mp3） · 筆順模板：KanjiVG（CC BY-SA 4.0，kanjivg.org）</footer>
-    <button class="prog-link" id="progBtn">進度只存這部手機 · 保存進度</button>
-  </div>
-
-  <!-- 保存進度 sheet -->
-  <div class="sheet-wrap" id="progSheet" hidden>
-    <div class="sheet-bg" id="progBg"></div>
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="保存進度">
-      <div class="sheet-head">
-        <div>
-          <div class="sheet-title">保存進度</div>
-          <div class="sheet-sub">進度只存在這部手機；重裝或換機會失去</div>
-        </div>
-        <button class="sheet-x" id="progClose" aria-label="關閉">✕</button>
-      </div>
-      <div class="prog-body">
-        <button class="btn-main" id="progExport">產生進度碼</button>
-        <textarea id="progCode" readonly placeholder="按上面按鈕，進度碼會顯示在這裡"></textarea>
-        <div><button class="mini" id="progCopy">複製進度碼</button></div>
-        <div class="add-hint" style="margin-top:8px">在新手機貼上進度碼，即可還原</div>
-        <textarea id="progPaste" placeholder="貼上進度碼"></textarea>
-        <div><button class="mini danger" id="progImport">匯入進度</button></div>
-        <div class="prog-msg" id="progMsg"></div>
-      </div>
-    </div>
   </div>
 
   <!-- 錯題簿管理 sheet -->
@@ -1744,56 +1713,6 @@
   $('sheetClose').addEventListener('click', closeSheet);
   $('sheetBg').addEventListener('click', closeSheet);
   document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !sheetEl.hidden) closeSheet(); });
-
-  // ── 保存進度：匯出／匯入進度碼（零後端，跨裝置搬進度）──────────
-  const progSheet=$('progSheet'), progCode=$('progCode'), progPaste=$('progPaste'), progMsg=$('progMsg');
-  function progOpen(on){ progSheet.hidden = !on; if(on){ progMsg.textContent=''; } }
-  $('progBtn').addEventListener('click', ()=>{ progOpen(true); });
-  $('progClose').addEventListener('click', ()=>progOpen(false));
-  $('progBg').addEventListener('click', ()=>progOpen(false));
-
-  function kanaKeys(){
-    const out={};
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k && k.indexOf('kana')===0) out[k]=localStorage.getItem(k);
-    }
-    return out;
-  }
-  function b64enc(str){
-    return btoa(unescape(encodeURIComponent(str))).replace(/=+$/,'');
-  }
-  function b64dec(str){
-    let s=str.trim().replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
-    while(s.length%4) s+='=';
-    return decodeURIComponent(escape(atob(s)));
-  }
-  $('progExport').addEventListener('click', ()=>{
-    const payload={v:1, t:Date.now(), app:'kana-dojo', d:kanaKeys()};
-    progCode.value='KANA1.'+b64enc(JSON.stringify(payload));
-    progMsg.textContent='已產生，複製後在新手機貼上。';
-  });
-  $('progCopy').addEventListener('click', async ()=>{
-    if(!progCode.value){ progMsg.textContent='先按「產生進度碼」。'; return; }
-    try{ await navigator.clipboard.writeText(progCode.value); progMsg.textContent='已複製。'; }
-    catch(e){ progCode.select(); document.execCommand('copy'); progMsg.textContent='已複製。'; }
-  });
-  $('progImport').addEventListener('click', ()=>{
-    const raw=progPaste.value.trim();
-    if(!raw){ progMsg.textContent='先貼上進度碼。'; return; }
-    try{
-      const body=raw.indexOf('KANA1.')===0 ? raw.slice(6) : raw;
-      const obj=JSON.parse(b64dec(body));
-      if(!obj || typeof obj!=='object' || typeof obj.d!=='object') throw new Error('bad');
-      let n=0;
-      Object.keys(obj.d).forEach(k=>{
-        if(k.indexOf('kana')!==0) return;
-        localStorage.setItem(k, String(obj.d[k])); n++;
-      });
-      progMsg.textContent='已匯入 '+n+' 項，重新載入…';
-      setTimeout(()=>location.reload(), 700);
-    }catch(err){ progMsg.textContent='進度碼不正確，請確認完整複製。'; }
-  });
 
   sheetList.addEventListener('click', e=>{
     const row=e.target.closest('.witem'); if(!row) return;
