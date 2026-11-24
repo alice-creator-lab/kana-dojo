@@ -366,7 +366,8 @@
 
   .slowbtn{border:1px solid var(--line); background:var(--card); color:var(--ink-soft); font-family:inherit;
     font-size:12px; font-weight:600; padding:5px 11px; border-radius:999px; cursor:pointer;
-    transition:.18s; white-space:nowrap; margin-left:auto;}
+    transition:.18s; white-space:nowrap; margin-left:6px;}
+  .voicerow .vl + .slowbtn{margin-left:auto}
   .slowbtn.on{background:var(--indigo); border-color:var(--indigo); color:#fff; box-shadow:0 3px 10px rgba(44,62,107,.20);}
   /* 羅馬拼音／鍵盤輸入：看字作答，顯示拼音就等於給答案 → 灰掉 */
   .slowbtn:disabled{background:var(--card); color:var(--ink-soft); border-color:var(--line);
@@ -429,7 +430,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.1.1</span>
+        <span class="ver" id="verTag">1.2</span>
         <button class="iconbtn" id="chartBtn" title="假名表（溫習用）">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
         </button>
@@ -461,6 +462,7 @@
       <span class="vl">發音</span>
       <button class="slowbtn" id="slowBtn" title="慢速讀音">慢讀</button>
       <button class="slowbtn" id="romajiBtn" title="在喇叭下面顯示拼音">拼音</button>
+      <button class="slowbtn" id="voiceBtn" title="切換男聲／女聲">女聲</button>
     </div>
 
     <div class="voicerow">
@@ -917,9 +919,9 @@
   /* audio/m/：Azure Speech（ja-JP-MayuNeural，-10%），有商用授權的正式版；
      audio/n/：舊 edge-tts 過渡版，保留作備份，唔再預設使用。
      日後再加聲源時，把新檔放去 audio/<key>/ 並在此加一個 key 即可。 */
-  let voiceMode = 'm';
+  let voiceMode = localStorage.getItem('kanaVoice') === 'f' ? 'f' : 'm';
   try{ localStorage.removeItem('kanaVoice'); }catch(e){}
-  const VOICE_DIR = { m:'audio/m/', n:'audio/n/' };
+  const VOICE_DIR = { m:'audio/m/', f:'audio/f/', n:'audio/n/' };
 
   function ttsFallback(kana){
     if(muted || !('speechSynthesis' in window)) return;
@@ -1842,6 +1844,16 @@
     if(emptyBtn.dataset.act==='manage') openSheet();
     else setScope('both');
   });
+  const voiceBtn = $('voiceBtn');
+  function applyVoiceBtn(){ voiceBtn.textContent = voiceMode === 'f' ? '男聲' : '女聲'; }
+  voiceBtn.addEventListener('click', ()=>{
+    voiceMode = voiceMode === 'f' ? 'm' : 'f';
+    localStorage.setItem('kanaVoice', voiceMode);
+    applyVoiceBtn();
+    if(current) speak(current.k);
+  });
+  applyVoiceBtn();
+
   const slowBtn = $('slowBtn');
   function applySlow(){
     slowBtn.classList.toggle('on', slowMode);

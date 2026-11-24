@@ -28,6 +28,8 @@ ENGINE = "edge"          # edge｜azure
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KANA_HTML = os.path.join(ROOT, "kana/index.html")
+if not os.path.exists(KANA_HTML):          # 獨立 repo：index.html 在根目錄
+    KANA_HTML = os.path.join(ROOT, "index.html")
 HEAD = 0.06
 TAIL = 0.10
 
