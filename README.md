@@ -23,3 +23,8 @@ GitHub Pages：`main` 分支根目錄 → https://alice-creator-lab.github.io/ka
 
 ## 版本
 版本號用「主.次.修」：大改版跳主號（2.0），加功能升次號（1.1），文字或小修升修號（1.0.1）。寫在頁面 `verTag`。音檔路徑固定為 `audio/m/<羅馬字>.mp3`（`を` 另用 `wo-chart.mp3`），更新音檔後如遇手機快取，可改檔名或加查詢參數。
+
+## 五十音筆順字帖
+`downloads/kana-worksheet.pdf`：17 頁 A4，封面＋平假名／片假名各 46 字；每行四格＝筆順字（附 1/2/3 筆順）→ 兩格虛線描紅 → 一格空白。
+重新產生：`python3 tools/make_worksheet.py`（字形取自 KanjiVG，快取在 `cache/kanjivg/`）。
+字形授權 CC BY-SA 4.0，字帖屬衍生作品，同樣以 CC BY-SA 4.0 提供；封面的署名不可移除。
