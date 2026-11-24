@@ -22,4 +22,4 @@ python3 tools/trim_seq_audio.py audio/m --force --copy --head 0.10 --tail 0.25
 GitHub Pages：`main` 分支根目錄 → https://alice-creator-lab.github.io/kana-dojo/
 
 ## 版本
-頁面右上角版本號（`verTag`）每次改動遞增。音檔路徑固定為 `audio/m/<羅馬字>.mp3`（`を` 另用 `wo-chart.mp3`），更新音檔後如遇手機快取，可改檔名或加查詢參數。
+版本號用「主.次.修」：大改版跳主號（2.0），加功能升次號（1.1），文字或小修升修號（1.0.1）。寫在頁面 `verTag`。音檔路徑固定為 `audio/m/<羅馬字>.mp3`（`を` 另用 `wo-chart.mp3`），更新音檔後如遇手機快取，可改檔名或加查詢參數。
