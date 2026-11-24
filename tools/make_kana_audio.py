@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""重出五十音頁的發音音檔（kana/audio/n/<romaji>.mp3）。
+
+假名表在 kana/index.html 裡，羅馬拼音由 HIRA／KATA／DAKU_HIRA／HAND_HIRA／YOUON_HIRA
+等陣列決定；本工具直接讀該檔，確保「表上有幾多格，就有幾多個檔」。
+
+用法：
+    python3 tools/make_kana_audio.py                 # 只補缺檔
+    python3 tools/make_kana_audio.py --force         # 全部重出
+    python3 tools/make_kana_audio.py --voice ja-JP-KeitaNeural --dir kana/audio/m
+
+    # 商用授權引擎（Azure Speech，需要 AZURE_SPEECH_KEY／AZURE_SPEECH_REGION）
+    python3 tools/make_kana_audio.py --engine azure --voice ja-JP-MayuNeural \
+        --rate -10% --dir kana/audio/m --force
+
+授權：edge-tts 只是過渡（研發用），商業版要用有授權的引擎重出整批。
+Azure Speech 版（預設 F0 免費層 50 萬字元／月，正式商用要轉 S0）。
+"""
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.request
+
+ENGINE = "edge"          # edge｜azure
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+KANA_HTML = os.path.join(ROOT, "kana/index.html")
+HEAD = 0.06
+TAIL = 0.10
+
+
+def kana_pairs():
+    """由 kana/index.html 抽出 (假名, 羅馬拼音)，同一拼音只留假名（平假名優先）。"""
+    src = open(KANA_HTML, encoding="utf-8").read()
+    start = src.index("const HIRA = [")
+    end = src.index("const ALL_PACKS")
+    seg = src[start:end]
+    pairs = re.findall(r"\[\s*'([^']+)'\s*,\s*'([^']+)'(?:\s*,\s*'([^']+)')?", seg)
+    # 假名頁只用每格的第一個拼音（ROMAJI[k] = o.r[0]），這裡照樣只取第一個，
+    # 否則會生成表上永遠用不到的檔（例如 を 的第二讀音）。
+    seen = {}
+    for k, r1, *_rest in pairs:
+        if not r1:
+            continue
+        if r1 not in seen or re.match(r"^[\u30a0-\u30ff]+$", seen[r1]):
+            seen[r1] = k        # 平假名優先（片假名同音，共用同一個檔）
+    return seen
+
+
+# 個別假名的合成文字／語速覆寫。
+# 「どー」用正常寫法合成時，edge-tts 會加一層明顯氣聲（2–4kHz 能量 17%，跟「で」相近），
+# 聽起來像 de；改成「どぉ」後高頻佔比降到 1%。「ん」沒有母音，正常語速只有 0.12 秒，
+# 用「んー」＋慢 35% 才有完整鼻音。
+# 假名表專用、不屬於表格本身的額外音檔：表上「を」要讀 wo（歷史讀音），
+# 但句子／練習裡的助詞 を 讀 o，所以分開兩個檔。
+EXTRA = {
+    "wo-chart": "ウォー",   # 外來語寫法，讀 /wo/；「うぉ」會被讀成 u+o 兩截
+}
+
+OVERRIDES = {
+    "shi": ("しー", "-15%"),   # 正常語速起音太硬，聽落似「chi」；慢 15% 較清楚
+    "do": ("どぉ", None),
+    "n": ("んー", "-35%"),
+    "wo": ("をぉ", None),
+}
+
+
+def voiced_seconds(path):
+    """回傳實際發聲長度（秒）：低於峰值 8% 的框架視為靜音。"""
+    import array as _array
+    import math as _math
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "s16le",
+                          "-ac", "1", "-ar", "16000", "-"],
+                         capture_output=True).stdout
+    a = _array.array("h")
+    a.frombytes(raw)
+    hop = 80
+    if not a:
+        return 0.0
+    env = [_math.sqrt(sum(v * v for v in a[i:i + hop]) / hop) / 32768
+           for i in range(0, len(a) - hop, hop)]
+    peak = max(env)
+    idx = [i for i, v in enumerate(env) if v > peak * 0.08]
+    return (idx[-1] - idx[0]) * 0.005 if idx else 0.0
+
+
+def stretch(path, target=0.34):
+    """單音節被合成得太短（例如「を」會忽略長音符）就用 atempo 拉長，音高不變。"""
+    cur = voiced_seconds(path)
+    if cur <= 0.01 or cur >= target * 0.9:
+        return cur
+    factor = max(0.35, cur / target)
+    chain = []
+    f = factor
+    while f < 0.5:
+        chain.append("atempo=0.5")
+        f = f / 0.5
+    chain.append("atempo=%.3f" % f)
+    tmp = path + ".slow.mp3"
+    r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path,
+                        "-af", ",".join(chain),
+                        "-c:a", "libmp3lame", "-q:a", "0", "-ar", "24000", "-ac", "1", tmp],
+                       capture_output=True, text=True)
+    if r.returncode == 0 and os.path.getsize(tmp) > 1500:
+        os.replace(tmp, path)
+    return voiced_seconds(path)
+
+
+def _ssml(voice, text, rate):
+    """Azure 的 SSML：rate 用 prosody，例如 -10%。"""
+    open_p = close_p = ""
+    if rate:
+        open_p, close_p = '<prosody rate="%s">' % rate, "</prosody>"
+    return ('<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
+            'xml:lang="ja-JP"><voice name="%s">%s%s%s</voice></speak>' % (voice, open_p, text, close_p))
+
+
+def synth_azure(voice, text, out, rate=None):
+    """Azure Speech REST：輸出 24kHz 48kbps CBR，跟 edge 版同格式（剪音框時可以 -c copy）。"""
+    key = os.environ.get("AZURE_SPEECH_KEY", "")
+    region = os.environ.get("AZURE_SPEECH_REGION", "")
+    if not key or not region:
+        print("缺 AZURE_SPEECH_KEY／AZURE_SPEECH_REGION")
+        return False
+    url = "https://%s.tts.speech.microsoft.com/cognitiveservices/v1" % region
+    body = _ssml(voice, text, rate).encode("utf-8")
+    for attempt in range(4):
+        req = urllib.request.Request(url, data=body, method="POST", headers={
+            "Ocp-Apim-Subscription-Key": key,
+            "Content-Type": "application/ssml+xml",
+            "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+            "User-Agent": "nihongo-step-kana-audio",
+        })
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                data = r.read()
+            if data and len(data) > 1500:
+                with open(out, "wb") as f:
+                    f.write(data)
+                return True
+        except Exception as e:          # 429／暫時性錯誤：退避重試
+            print("  azure retry", attempt + 1, e)
+        import time
+        time.sleep(1.5 * (attempt + 1))
+    return False
+
+
+def synth(voice, text, out, rate=None):
+    if ENGINE == "azure":
+        return synth_azure(voice, text, out, rate)
+    for _ in range(4):
+        cmd = ["edge-tts", "--voice", voice, "--text", text, "--write-media", out]
+        if rate:
+            cmd += ["--rate", rate]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 1500:
+            return True
+    return False
+
+
+def main():
+    global ENGINE
+    force = "--force" in sys.argv
+    voice = "ja-JP-NanamiNeural"
+    outdir = "kana/audio/n"
+    rate = None        # 預設語速；靠「ー」把母音拉長，避免拖慢後被重新編碼失真
+    suffix = "ー"      # 加長音符讓母音有正常長度；「を」會忽略，靠 stretch() 補
+    for i, a in enumerate(sys.argv):
+        if a == "--engine" and i + 1 < len(sys.argv):
+            ENGINE = sys.argv[i + 1]
+            if ENGINE == "azure" and voice == "ja-JP-NanamiNeural":
+                voice = "ja-JP-MayuNeural"
+        if a == "--voice" and i + 1 < len(sys.argv):
+            voice = sys.argv[i + 1]
+        if a == "--rate" and i + 1 < len(sys.argv):
+            rate = sys.argv[i + 1]
+        if a == "--suffix" and i + 1 < len(sys.argv):
+            suffix = sys.argv[i + 1]
+        if a == "--dir" and i + 1 < len(sys.argv):
+            outdir = sys.argv[i + 1]
+    target = os.path.join(ROOT, outdir)
+    os.makedirs(os.path.join(target, ".trimmed"), exist_ok=True)
+
+    pairs = kana_pairs()
+    manifest_path = os.path.join(ROOT, "kana/audio/manifest.json")
+    manifest = {}
+    if os.path.exists(manifest_path) and not force:
+        try:
+            manifest = json.load(open(manifest_path, encoding="utf-8"))
+        except Exception:
+            manifest = {}
+    manifest.setdefault(outdir, {})
+    m = manifest[outdir]
+
+    jobs = []
+    for rom, kana in sorted(pairs.items()):
+        rel = "%s/%s.mp3" % (outdir, rom)
+        path = os.path.join(ROOT, rel)
+        m[rom] = {"kana": kana, "file": rel, "voice": voice, "rate": rate or "0%",
+                  "text": kana + suffix}
+        if force or not os.path.exists(path) or os.path.getsize(path) < 1500:
+            jobs.append((kana, rom, path))
+
+    print("假名 %d 個，待生成 %d" % (len(pairs), len(jobs)), flush=True)
+    ok = fail = 0
+    failed = []
+    for n, (kana, rom, path) in enumerate(jobs, 1):
+        text, r = OVERRIDES.get(rom, (kana + suffix, rate))
+        if synth(voice, text, path, r):
+            ok += 1
+        else:
+            fail += 1
+            failed.append(rom)
+        if n % 20 == 0 or n == len(jobs):
+            print("  %d/%d" % (n, len(jobs)), flush=True)
+    ex_ok = ex_fail = 0
+    for name, text in EXTRA.items():
+        path = os.path.join(target, name + ".mp3")
+        if not force and os.path.exists(path) and os.path.getsize(path) > 1500:
+            continue
+        if synth(voice, text, path, rate):
+            ex_ok += 1
+        else:
+            ex_fail += 1
+            failed.append(name)
+    if EXTRA:
+        print("額外音檔：成功 %d，失敗 %d" % (ex_ok, ex_fail), flush=True)
+
+    print("完成：成功 %d，失敗 %d" % (ok, fail), flush=True)
+    if failed:
+        print("失敗：", " ".join(failed), flush=True)
+    json.dump(manifest, open(manifest_path, "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    print("已寫 %s" % os.path.relpath(manifest_path, ROOT), flush=True)
+    return 1 if fail else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
