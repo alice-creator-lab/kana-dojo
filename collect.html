@@ -141,7 +141,7 @@ form.addEventListener('submit', async e=>{
   if(form._honey.value){ return; }        // 機械人
 
   if(!LEAD_ENDPOINT){
-    show('err', '寄送功能尚未接通。<a href="' + PDF_URL + '">先直接下載字帖</a>。');
+    show('err', '自動寄送仲未開通，可以先<a href="' + PDF_URL + '">直接下載字帖</a>；開通後會第一時間通知你。');
     return;
   }
 
