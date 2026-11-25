@@ -111,8 +111,11 @@
       <div class="tick">✉️</div>
       <h2>已寄出</h2>
       <p id="doneText">請到收件箱查看；若一分鐘內仍未收到，也請檢查垃圾郵件。</p>
+      <p class="sub">等唔到？<a href="downloads/kana-worksheet.pdf">直接下載 PDF</a></p>
     </div>
   </div>
+
+  <iframe name="fsSink" id="fsSink" title="送信中" style="display:none"></iframe>
 
   <p class="foot">
     <a href="./">← 回到五十音練習</a><br>
@@ -157,6 +160,7 @@ if(new URLSearchParams(location.search).get('sent') === '1'){ sent(); }
 if(FS_EMAIL && !LEAD_ENDPOINT){
   form.action = 'https://formsubmit.co/' + FS_EMAIL;
   form.method = 'POST';
+  form.target = 'fsSink';          // 提交去隱藏 iframe：頁面唔跳走，Safari 唔會卡住
   const hidden = {
     _subject: '你的五十音筆順字帖（下載連結）',
     _template: 'table',
@@ -186,11 +190,9 @@ form.addEventListener('submit', async e=>{
   if(form._honey.value){ e.preventDefault(); return; }   // 機械人
 
   if(FS_EMAIL && !LEAD_ENDPOINT){          // 原生 POST：交給 FormSubmit
-    // 不要 disable 送出鈕：Safari 會因為 submitter 被 disable 而取消提交，變成卡在「寄出中…」
-    show('ok', '正在前往寄送…');
-    setTimeout(()=>{
-      show('err', '畫面沒有跳轉？可能是瀏覽器攔截了跨站提交。可以<a href="' + PDF_URL + '">直接下載字帖</a>，或稍後再試。');
-    }, 9000);
+    // 提交去隱藏 iframe，頁面留在原地：唔可以 disable 按鈕（Safari 會取消提交）
+    btn.textContent = '寄出中…';
+    setTimeout(sent, 1400);      // 唔等伺服器回應（跨域讀唔到），樂觀顯示成功
     return;
   }
 
