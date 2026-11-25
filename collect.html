@@ -29,12 +29,19 @@
     background:var(--paper); border:1px solid var(--line); border-radius:18px;
     padding:20px 18px; box-shadow:0 1px 0 rgba(0,0,0,.02);
   }
-  ul.feats{list-style:none; margin:0 0 18px; padding:0; font-size:14.5px; color:#3f3a33}
-  ul.feats li{position:relative; padding-left:22px; margin:6px 0}
-  ul.feats li::before{
-    content:""; position:absolute; left:4px; top:.62em; width:6px; height:6px;
-    border-radius:50%; background:var(--indigo); opacity:.55;
-  }
+  .demo{background:#fffdf9; border:1px solid var(--line); border-radius:14px;
+    padding:11px 11px 7px; margin:0 0 18px}
+  .demo-tag{font-size:10.5px; letter-spacing:.08em; color:#a89e8a; margin:0 0 8px}
+  .drow{display:flex; align-items:center; gap:6px; margin-bottom:6px}
+  .dl{width:30px; flex:none; text-align:center}
+  .dl b{display:block; font-family:"Noto Serif JP",serif; font-size:19px; line-height:1.15}
+  .dl span{font-size:9px; color:#9a9285}
+  .sq{flex:1; aspect-ratio:1/1; border:.6pt solid #d5ccbb; border-radius:5px;
+    position:relative; overflow:hidden; background:#fff}
+  .cx{position:absolute; inset:0;
+    background-image:linear-gradient(to right, transparent 49.5%, #ece4d5 49.5%, #ece4d5 50.5%, transparent 50.5%),
+                     linear-gradient(to bottom, transparent 49.5%, #ece4d5 49.5%, #ece4d5 50.5%, transparent 50.5%)}
+  .sq svg{position:absolute; inset:5%; width:90%; height:90%}
   label{display:block; font-size:12.5px; color:var(--ink-soft); margin:0 0 6px; letter-spacing:.02em}
   input[type=email]{
     width:100%; font-size:16px; padding:13px 14px; border-radius:12px;
@@ -71,11 +78,10 @@
 
   <div class="card">
     <div id="formBox">
-      <ul class="feats">
-        <li>每一筆都有順序數字，照住寫不會寫錯筆順</li>
-        <li>兩格虛線描紅，最後一格自己寫</li>
-        <li>方格附十字輔助線，列印出來即可用</li>
-      </ul>
+      <div class="demo">
+        <div class="demo-tag">字帖預覽 · 實際 17 頁 A4</div>
+<div class="drow"><div class="dl"><b>あ</b><span>a</span></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#1d1a16;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round"><path d="M31.01,33c0.88,0.88,2.75,1.82,5.25,1.75c8.62-0.25,20-2.12,29.5-4.25c1.51-0.34,4.62-0.88,6.62-0.5"/><path d="M49.76,17.62c0.88,1,1.82,3.26,1.38,5.25c-3.75,16.75-6.25,38.13-5.13,53.63c0.41,5.7,1.88,10.88,3.38,13.62"/><path d="M65.63,44.12c0.75,1.12,1.16,4.39,0.5,6.12c-4.62,12.26-11.24,23.76-25.37,35.76c-6.86,5.83-15.88,3.75-16.25-8.38c-0.34-10.87,13.38-23.12,32.38-26.74c12.42-2.37,27,1.38,30.5,12.75c4.05,13.18-3.76,26.37-20.88,30.49"/></g><text x="22.5" y="35.0" font-size="9" fill="#a89e8a">1</text><text x="41.5" y="19.0" font-size="9" fill="#a89e8a">2</text><text x="57.5" y="42.0" font-size="9" fill="#a89e8a">3</text></svg></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#aea493;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 3.6"><path d="M31.01,33c0.88,0.88,2.75,1.82,5.25,1.75c8.62-0.25,20-2.12,29.5-4.25c1.51-0.34,4.62-0.88,6.62-0.5"/><path d="M49.76,17.62c0.88,1,1.82,3.26,1.38,5.25c-3.75,16.75-6.25,38.13-5.13,53.63c0.41,5.7,1.88,10.88,3.38,13.62"/><path d="M65.63,44.12c0.75,1.12,1.16,4.39,0.5,6.12c-4.62,12.26-11.24,23.76-25.37,35.76c-6.86,5.83-15.88,3.75-16.25-8.38c-0.34-10.87,13.38-23.12,32.38-26.74c12.42-2.37,27,1.38,30.5,12.75c4.05,13.18-3.76,26.37-20.88,30.49"/></g></svg></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#aea493;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 3.6"><path d="M31.01,33c0.88,0.88,2.75,1.82,5.25,1.75c8.62-0.25,20-2.12,29.5-4.25c1.51-0.34,4.62-0.88,6.62-0.5"/><path d="M49.76,17.62c0.88,1,1.82,3.26,1.38,5.25c-3.75,16.75-6.25,38.13-5.13,53.63c0.41,5.7,1.88,10.88,3.38,13.62"/><path d="M65.63,44.12c0.75,1.12,1.16,4.39,0.5,6.12c-4.62,12.26-11.24,23.76-25.37,35.76c-6.86,5.83-15.88,3.75-16.25-8.38c-0.34-10.87,13.38-23.12,32.38-26.74c12.42-2.37,27,1.38,30.5,12.75c4.05,13.18-3.76,26.37-20.88,30.49"/></g></svg></div><div class="sq"><span class="cx"></span></div></div><div class="drow"><div class="dl"><b>い</b><span>i</span></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#1d1a16;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round"><path d="M21.5,29.66c2.01,2.17,2.61,4.68,2.17,7.43c-3.09,19.16-1.03,32.01,7.93,41.45c6.12,6.45,6.26,3.14,7.04-5.21"/><path d="M72.96,36.51c9.44,8.05,17.79,18.82,18.41,33.83"/></g><text x="15.0" y="27.1" font-size="9" fill="#a89e8a">1</text><text x="62.2" y="32.9" font-size="9" fill="#a89e8a">2</text></svg></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#aea493;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 3.6"><path d="M21.5,29.66c2.01,2.17,2.61,4.68,2.17,7.43c-3.09,19.16-1.03,32.01,7.93,41.45c6.12,6.45,6.26,3.14,7.04-5.21"/><path d="M72.96,36.51c9.44,8.05,17.79,18.82,18.41,33.83"/></g></svg></div><div class="sq"><span class="cx"></span><svg viewBox="0 0 109 109"><g style="fill:none;stroke:#aea493;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 3.6"><path d="M21.5,29.66c2.01,2.17,2.61,4.68,2.17,7.43c-3.09,19.16-1.03,32.01,7.93,41.45c6.12,6.45,6.26,3.14,7.04-5.21"/><path d="M72.96,36.51c9.44,8.05,17.79,18.82,18.41,33.83"/></g></svg></div><div class="sq"><span class="cx"></span></div></div>
+      </div>
 
       <form id="leadForm" novalidate>
         <label for="email">你的電郵（寄送 PDF 用）</label>
