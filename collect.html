@@ -186,8 +186,11 @@ form.addEventListener('submit', async e=>{
   if(form._honey.value){ e.preventDefault(); return; }   // 機械人
 
   if(FS_EMAIL && !LEAD_ENDPOINT){          // 原生 POST：交給 FormSubmit
-    btn.disabled = true;
-    btn.textContent = '寄出中…';
+    // 不要 disable 送出鈕：Safari 會因為 submitter 被 disable 而取消提交，變成卡在「寄出中…」
+    show('ok', '正在前往寄送…');
+    setTimeout(()=>{
+      show('err', '畫面沒有跳轉？可能是瀏覽器攔截了跨站提交。可以<a href="' + PDF_URL + '">直接下載字帖</a>，或稍後再試。');
+    }, 9000);
     return;
   }
 
