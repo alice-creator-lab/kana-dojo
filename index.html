@@ -406,6 +406,18 @@
 
   /* 音量／靜音 */
   a.iconbtn{text-decoration:none}
+  /* 重設確認 */
+  .cfm{position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:22px}
+  .cfm[hidden]{display:none}
+  .cfm-bg{position:absolute; inset:0; background:rgba(38,34,29,.42)}
+  .cfm-card{position:relative; width:min(320px,100%); background:var(--card); border-radius:18px;
+    padding:22px 20px 16px; box-shadow:0 22px 54px rgba(38,34,29,.28); text-align:center}
+  .cfm-card p{margin:0 0 4px; font-size:15px; font-weight:600; color:var(--ink)}
+  .cfm-card .sub{margin:0 0 18px; font-size:12.5px; color:var(--ink-soft); line-height:1.6}
+  .cfm-btns{display:flex; gap:10px}
+  .cfm-btns button{flex:1; padding:12px 10px; border-radius:12px; font:inherit; font-size:14px;
+    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer}
+  .cfm-btns button.danger{background:#b4453c; border-color:#b4453c; color:#fff; font-weight:600}
   .iconbtn{display:grid; place-items:center; width:36px; height:36px; padding:0; border:1px solid var(--line);
     background:var(--card); border-radius:999px; color:var(--ink-soft); cursor:pointer; transition:.15s; flex:0 0 auto;}
   .iconbtn:hover{color:var(--indigo); border-color:var(--indigo);}
@@ -442,7 +454,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.3</span>
+        <span class="ver" id="verTag">1.3.1</span>
         <a class="iconbtn" id="wsBtn" href="collect.html" title="下載練習紙" aria-label="下載五十音練習紙">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 19h14"/></svg>
         </a>
@@ -456,6 +468,18 @@
         </button>
       </div>
     </header>
+
+    <div class="cfm" id="cfm" hidden>
+      <div class="cfm-bg" id="cfmBg"></div>
+      <div class="cfm-card" role="dialog" aria-modal="true" aria-labelledby="cfmTitle">
+        <p id="cfmTitle">重設全部統計？</p>
+        <p class="sub">連對、答對、答錯、正確率會歸零。<br>錯題簿內容不受影響。</p>
+        <div class="cfm-btns">
+          <button id="cfmNo">取消</button>
+          <button id="cfmYes" class="danger">重設</button>
+        </div>
+      </div>
+    </div>
 
     <div class="mode" id="modeSeg">
       <button data-mode="read" class="active" title="看字 → 輸入羅馬拼音">羅馬拼音</button>
@@ -1673,8 +1697,14 @@
     if(mode==='write' && e.key==='Enter' && !answered && !revealed){ e.preventDefault(); doReveal(); return; }
     if(answered && e.key==='Enter'){ e.preventDefault(); newQuestion(); }
   });
-  $('resetBtn').addEventListener('click', ()=>{
-    stats={correct:0,wrong:0,streak:0}; updateStats(); newQuestion();
+  // 重設前先確認，避免誤按清掉統計
+  const cfm = $('cfm');
+  function closeCfm(){ cfm.hidden = true; }
+  $('resetBtn').addEventListener('click', ()=>{ cfm.hidden = false; });
+  $('cfmNo').addEventListener('click', closeCfm);
+  $('cfmBg').addEventListener('click', closeCfm);
+  $('cfmYes').addEventListener('click', ()=>{
+    stats={correct:0,wrong:0,streak:0}; updateStats(); newQuestion(); closeCfm();
   });
   // ── 錯題簿：管理 sheet ────────────────────────────────────
   function syncWrongView(){          // 改完錯題簿即刻反映返練習畫面
