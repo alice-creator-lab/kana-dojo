@@ -122,12 +122,13 @@
 
 <script>
 /* ── 設定 ─────────────────────────────────────────────────
-   LEAD_ENDPOINT：收 email 的端點。
-   暫時留空＝頁面會顯示「尚未接通」，並提供直接下載連結。
-   接通後（見 README「收集頁」）改成：
-     FormSubmit：'https://formsubmit.co/ajax/<你的電郵>'
-     自架 Worker：'https://<worker>.workers.dev/api/lead'
+   FS_EMAIL：FormSubmit 收件電郵。填入後，表單用「原生 POST」送出，
+              FormSubmit 會用 _autoresponse 自動回覆一封含 PDF 連結的信。
+              注意：FormSubmit 的 AXIOS／AJAX 模式不支援 autoresponse，
+              所以這裡刻意用原生表單送出（會短暫跳到 FormSubmit，再返回本站）。
+   LEAD_ENDPOINT：自架 Worker（AJAX）用；留空即可。
    ──────────────────────────────────────────────────────── */
+const FS_EMAIL = '';
 const LEAD_ENDPOINT = '';
 const PDF_URL = 'downloads/kana-worksheet.pdf';
 
@@ -135,7 +136,6 @@ const form = document.getElementById('leadForm');
 const btn = document.getElementById('sendBtn');
 const msg = document.getElementById('msg');
 const done = document.getElementById('done');
-const doneText = document.getElementById('doneText');
 const formBox = document.getElementById('formBox');
 
 function show(kind, html){
@@ -147,17 +147,51 @@ function sent(){
   msg.className = 'msg'; msg.textContent = '';
   formBox.style.display = 'none';
   done.style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* FormSubmit 返回本站時顯示成功畫面 */
+if(new URLSearchParams(location.search).get('sent') === '1'){ sent(); }
+
+/* 用 FormSubmit：設定 action 與隱藏欄位（_captcha 保持開啟，autoresponse 才有效） */
+if(FS_EMAIL && !LEAD_ENDPOINT){
+  form.action = 'https://formsubmit.co/' + FS_EMAIL;
+  form.method = 'POST';
+  const hidden = {
+    _subject: '你的五十音筆順字帖（下載連結）',
+    _template: 'table',
+    _autoresponse:
+      '多謝索取五十音筆順字帖。\n\n' +
+      '下載連結（17 頁 A4 PDF，可直接列印）：\n' +
+      'https://alice-creator-lab.github.io/kana-dojo/downloads/kana-worksheet.pdf\n\n' +
+      '練習 app：https://alice-creator-lab.github.io/kana-dojo/\n\n' +
+      '—— 五十音練習',
+    _next: location.origin + location.pathname + '?sent=1',
+  };
+  Object.entries(hidden).forEach(([name, value])=>{
+    const el = document.createElement('input');
+    el.type = 'hidden'; el.name = name; el.value = value;
+    form.appendChild(el);
+  });
 }
 
 form.addEventListener('submit', async e=>{
-  e.preventDefault();
   const email = form.email.value.trim();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+    e.preventDefault();
     show('err', '電郵格式好像不對，請再檢查一次。');
     form.email.focus();
     return;
   }
-  if(form._honey.value){ return; }        // 機械人
+  if(form._honey.value){ e.preventDefault(); return; }   // 機械人
+
+  if(FS_EMAIL && !LEAD_ENDPOINT){          // 原生 POST：交給 FormSubmit
+    btn.disabled = true;
+    btn.textContent = '寄出中…';
+    return;
+  }
+
+  e.preventDefault();
 
   if(!LEAD_ENDPOINT){
     show('err', '自動寄送仲未開通，可以先<a href="' + PDF_URL + '">直接下載字帖</a>；開通後會第一時間通知你。');
@@ -172,13 +206,7 @@ form.addEventListener('submit', async e=>{
     const res = await fetch(LEAD_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-      body: JSON.stringify({
-        email,
-        _subject: '五十音筆順字帖',
-        _template: 'table',
-        _autoresponse: '多謝索取五十音筆順字帖。\n\n下載連結（17 頁 A4 PDF）：\nhttps://alice-creator-lab.github.io/kana-dojo/downloads/kana-worksheet.pdf\n\n練習 app：https://alice-creator-lab.github.io/kana-dojo/\n\n—— 五十音練習',
-        source: location.pathname
-      })
+      body: JSON.stringify({email, source: location.pathname})
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     sent();
