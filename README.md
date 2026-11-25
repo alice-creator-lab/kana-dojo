@@ -28,3 +28,10 @@ GitHub Pages：`main` 分支根目錄 → https://alice-creator-lab.github.io/ka
 `downloads/kana-worksheet.pdf`：17 頁 A4，封面＋平假名／片假名各 46 字；每行四格＝筆順字（附 1/2/3 筆順）→ 兩格虛線描紅 → 一格空白。
 重新產生：`python3 tools/make_worksheet.py`（字形取自 KanjiVG，快取在 `cache/kanjivg/`）。
 字形授權 CC BY-SA 4.0，字帖屬衍生作品，同樣以 CC BY-SA 4.0 提供；封面的署名不可移除。
+
+## 收集頁（collect.html）
+`/collect.html`：輸入電郵 → 寄出字帖下載連結。
+- 現時 `LEAD_ENDPOINT` 留空，頁面會提示「尚未接通」並提供直接下載。
+- 接 FormSubmit（免註冊）：把 `const LEAD_ENDPOINT = '';` 改成 `'https://formsubmit.co/ajax/<你的電郵>'`；
+  第一次提交會收到啟用信，點擊後先會真正轉發同自動回覆。啟用後改用 `https://formsubmit.co/ajax/<hash>`（唔會公開電郵）。
+- 自動回覆內容在 `_autoresponse`（含 PDF 絕對網址）。

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>免費索取：五十音筆順字帖</title>
+<meta name="theme-color" content="#2c3e6b">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  :root{
+    --bg:#f4efe6; --paper:#fffdf8; --ink:#1d1a16; --ink-soft:#6b6357;
+    --line:#e3dbcc; --indigo:#2c3e6b; --red:#b4453c; --ok:#2f6b4f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Hiragino Sans",sans-serif;
+    line-height:1.75; -webkit-font-smoothing:antialiased;
+    padding:calc(20px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  }
+  .wrap{width:100%; max-width:520px; margin:auto 0}
+  h1{
+    font-family:"Noto Serif TC","Noto Serif JP",serif; font-weight:700;
+    font-size:26px; line-height:1.4; margin:0 0 6px; letter-spacing:.02em;
+  }
+  .sub{color:var(--ink-soft); font-size:14px; margin:0 0 20px}
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:18px;
+    padding:20px 18px; box-shadow:0 1px 0 rgba(0,0,0,.02);
+  }
+  ul.feats{list-style:none; margin:0 0 18px; padding:0; font-size:14.5px; color:#3f3a33}
+  ul.feats li{position:relative; padding-left:22px; margin:6px 0}
+  ul.feats li::before{
+    content:""; position:absolute; left:4px; top:.62em; width:6px; height:6px;
+    border-radius:50%; background:var(--indigo); opacity:.55;
+  }
+  label{display:block; font-size:12.5px; color:var(--ink-soft); margin:0 0 6px; letter-spacing:.02em}
+  input[type=email]{
+    width:100%; font-size:16px; padding:13px 14px; border-radius:12px;
+    border:1px solid var(--line); background:#fffefb; color:var(--ink);
+    font-family:inherit; appearance:none;
+  }
+  input[type=email]:focus{outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(44,62,107,.12)}
+  button{
+    width:100%; margin-top:14px; padding:14px 16px; border:none; border-radius:12px;
+    background:var(--indigo); color:#fff; font-size:16px; font-weight:600;
+    font-family:inherit; cursor:pointer; transition:.15s;
+  }
+  button:active{transform:scale(.985); opacity:.92}
+  button[disabled]{opacity:.55; cursor:default}
+  .note{font-size:12px; color:#8c8477; margin-top:10px; line-height:1.6}
+  .hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
+  .msg{margin-top:14px; font-size:14px; border-radius:12px; padding:12px 14px; display:none}
+  .msg.show{display:block}
+  .msg.ok{background:#eef6f0; color:var(--ok); border:1px solid #cfe3d7}
+  .msg.err{background:#fbeeed; color:var(--red); border:1px solid #f0cfcb}
+  .msg a{color:inherit; font-weight:600}
+  .foot{margin-top:18px; font-size:11.5px; color:#9a9285; text-align:center; line-height:1.8}
+  .foot a{color:#8c8477}
+  .done{display:none; text-align:center; padding:8px 4px 4px}
+  .done .tick{font-size:34px; line-height:1; margin-bottom:8px}
+  .done h2{font-size:18px; margin:0 0 8px; font-family:"Noto Serif TC",serif}
+  .done p{margin:0; font-size:14px; color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>五十音筆順字帖</h1>
+  <p class="sub">17 頁 A4 · 平假名＋片假名 92 字 · 方格＋筆順＋虛線描紅</p>
+
+  <div class="card">
+    <div id="formBox">
+      <ul class="feats">
+        <li>每一筆都有順序數字，照住寫不會寫錯筆順</li>
+        <li>兩格虛線描紅，最後一格自己寫</li>
+        <li>方格附十字輔助線，列印出來即可用</li>
+      </ul>
+
+      <form id="leadForm" novalidate>
+        <label for="email">你的電郵（寄送 PDF 用）</label>
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+               placeholder="name@example.com" required>
+        <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" id="sendBtn">寄字帖給我</button>
+        <p class="note">只會用來寄這份字帖與日後少量日語學習內容，隨時可以取消訂閱。不會出售你的電郵。</p>
+        <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+
+    <div class="done" id="done">
+      <div class="tick">✉️</div>
+      <h2>已寄出</h2>
+      <p id="doneText">請到收件箱查看；若一分鐘內仍未收到，也請檢查垃圾郵件。</p>
+    </div>
+  </div>
+
+  <p class="foot">
+    <a href="./">← 回到五十音練習</a><br>
+    字帖字形來源：KanjiVG（CC BY-SA 4.0）
+  </p>
+</div>
+
+<script>
+/* ── 設定 ─────────────────────────────────────────────────
+   LEAD_ENDPOINT：收 email 的端點。
+   暫時留空＝頁面會顯示「尚未接通」，並提供直接下載連結。
+   接通後（見 README「收集頁」）改成：
+     FormSubmit：'https://formsubmit.co/ajax/<你的電郵>'
+     自架 Worker：'https://<worker>.workers.dev/api/lead'
+   ──────────────────────────────────────────────────────── */
+const LEAD_ENDPOINT = '';
+const PDF_URL = 'downloads/kana-worksheet.pdf';
+
+const form = document.getElementById('leadForm');
+const btn = document.getElementById('sendBtn');
+const msg = document.getElementById('msg');
+const done = document.getElementById('done');
+const doneText = document.getElementById('doneText');
+const formBox = document.getElementById('formBox');
+
+function show(kind, html){
+  msg.className = 'msg show ' + kind;
+  msg.innerHTML = html;
+}
+
+function sent(){
+  msg.className = 'msg'; msg.textContent = '';
+  formBox.style.display = 'none';
+  done.style.display = 'block';
+}
+
+form.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const email = form.email.value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+    show('err', '電郵格式好像不對，請再檢查一次。');
+    form.email.focus();
+    return;
+  }
+  if(form._honey.value){ return; }        // 機械人
+
+  if(!LEAD_ENDPOINT){
+    show('err', '寄送功能尚未接通。<a href="' + PDF_URL + '">先直接下載字帖</a>。');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '寄出中…';
+  msg.className = 'msg';
+
+  try{
+    const res = await fetch(LEAD_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify({
+        email,
+        _subject: '五十音筆順字帖',
+        _template: 'table',
+        _autoresponse: '多謝索取五十音筆順字帖。\n\n下載連結（17 頁 A4 PDF）：\nhttps://alice-creator-lab.github.io/kana-dojo/downloads/kana-worksheet.pdf\n\n練習 app：https://alice-creator-lab.github.io/kana-dojo/\n\n—— 五十音練習',
+        source: location.pathname
+      })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    sent();
+  }catch(err){
+    btn.disabled = false;
+    btn.textContent = '寄字帖給我';
+    show('err', '寄送失敗，請再試一次；如果仍然不行，<a href="' + PDF_URL + '">直接下載字帖</a>。');
+  }
+});
+</script>
+</body>
+</html>
