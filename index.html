@@ -197,10 +197,6 @@
     min-height:160px; display:flex; align-items:center;
     animation:pop .28s cubic-bezier(.2,.9,.3,1.4);}
   @keyframes pop{from{opacity:0; transform:scale(.8);} to{opacity:1; transform:scale(1);}}
-  .word{min-height:22px; margin-top:2px; font-size:14.5px; color:var(--ink-soft);
-    letter-spacing:.02em; font-family:inherit;}
-  .word b{font-family:"Noto Serif JP",serif; font-size:17px; color:var(--ink); font-weight:600}
-  .word span{color:#9a9285; font-size:12.5px}
 
   .input-row{width:100%; margin-top:12px; display:flex; gap:10px;}
   #answer, #speakInput{flex:1; min-width:0; font-family:inherit; font-size:20px; text-align:center;
@@ -458,7 +454,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.3.7</span>
+        <span class="ver" id="verTag">1.3.6</span>
         <a class="iconbtn" id="wsBtn" href="collect.html" title="下載練習紙" aria-label="下載五十音練習紙">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 19h14"/></svg>
         </a>
@@ -521,7 +517,6 @@
       <div class="panel active" id="readPanel">
         <div class="type-label" id="typeLabel">ひらがな（平假名）</div>
         <div class="kana" id="kana">あ</div>
-        <div class="word" id="word"></div>
         <div class="input-row">
           <input id="answer" type="text" inputmode="text" autocomplete="off" autocapitalize="none"
                  autocorrect="off" spellcheck="false" placeholder="輸入羅馬字拼音…">
@@ -743,97 +738,6 @@
   const ALL_PACKS = [packHira,packKata,packDakuHira,packDakuKata,
                      packHandHira,packHandKata,packYouonHira,packYouonKata];
   const ALL_KANA = new Map(ALL_PACKS.flat().map(o=>[o.k,o]));
-  // 例字（認字模式顯示）：[詞, 羅馬字, 中文]
-  const WORDS = {
-    "あ":["あめ","ame","雨"],
-    "い":["いぬ","inu","狗"],
-    "う":["うみ","umi","海"],
-    "え":["えき","eki","車站"],
-    "お":["おに","oni","鬼"],
-    "か":["かさ","kasa","傘"],
-    "き":["き","ki","樹"],
-    "く":["くつ","kutsu","鞋"],
-    "け":["けむり","kemuri","煙"],
-    "こ":["こえ","koe","聲音"],
-    "さ":["さかな","sakana","魚"],
-    "し":["しお","shio","鹽"],
-    "す":["すし","sushi","壽司"],
-    "せ":["せかい","sekai","世界"],
-    "そ":["そら","sora","天空"],
-    "た":["たまご","tamago","蛋"],
-    "ち":["ちず","chizu","地圖"],
-    "つ":["つき","tsuki","月亮"],
-    "て":["て","te","手"],
-    "と":["とり","tori","鳥"],
-    "な":["なつ","natsu","夏天"],
-    "に":["にく","niku","肉"],
-    "ぬ":["ぬの","nuno","布"],
-    "ね":["ねこ","neko","貓"],
-    "の":["のり","nori","海苔"],
-    "は":["はな","hana","花"],
-    "ひ":["ひと","hito","人"],
-    "ふ":["ふね","fune","船"],
-    "へ":["へび","hebi","蛇"],
-    "ほ":["ほし","hoshi","星"],
-    "ま":["まど","mado","窗"],
-    "み":["みず","mizu","水"],
-    "む":["むし","mushi","蟲"],
-    "め":["め","me","眼睛"],
-    "も":["もり","mori","森林"],
-    "や":["やま","yama","山"],
-    "ゆ":["ゆき","yuki","雪"],
-    "よ":["よる","yoru","夜晚"],
-    "ら":["らいねん","rainen","明年"],
-    "り":["りんご","ringo","蘋果"],
-    "る":["るす","rusu","不在家"],
-    "れ":["れきし","rekishi","歷史"],
-    "ろ":["ろく","roku","六"],
-    "わ":["わに","wani","鱷魚"],
-    "ア":["アイス","aisu","雪糕"],
-    "イ":["イタリア","itaria","意大利"],
-    "ウ":["ウール","ūru","羊毛"],
-    "エ":["エアコン","eakon","冷氣機"],
-    "オ":["オレンジ","orenji","橙"],
-    "カ":["カメラ","kamera","相機"],
-    "キ":["キロ","kiro","公里"],
-    "ク":["クラス","kurasu","班別"],
-    "ケ":["ケーキ","kēki","蛋糕"],
-    "コ":["コーヒー","kōhī","咖啡"],
-    "サ":["サッカー","sakkā","足球"],
-    "シ":["シャツ","shatsu","襯衫"],
-    "ス":["スープ","sūpu","湯"],
-    "セ":["セーター","sētā","毛衣"],
-    "ソ":["ソファ","sofa","沙發"],
-    "タ":["タクシー","takushī","的士"],
-    "チ":["チーズ","chīzu","芝士"],
-    "ツ":["ツアー","tsuā","旅行團"],
-    "テ":["テレビ","terebi","電視"],
-    "ト":["トマト","tomato","番茄"],
-    "ナ":["ナイフ","naifu","刀"],
-    "ニ":["ニュース","nyūsu","新聞"],
-    "ヌ":["ヌードル","nūdoru","麵"],
-    "ネ":["ネクタイ","nekutai","領帶"],
-    "ノ":["ノート","nōto","筆記簿"],
-    "ハ":["ハンバーガー","hanbāgā","漢堡"],
-    "ヒ":["ヒーター","hītā","暖爐"],
-    "フ":["フォーク","fōku","叉"],
-    "ヘ":["ヘリコプター","herikoputā","直升機"],
-    "ホ":["ホテル","hoteru","酒店"],
-    "マ":["マンション","manshon","公寓"],
-    "ミ":["ミルク","miruku","牛奶"],
-    "ム":["ムード","mūdo","氣氛"],
-    "メ":["メニュー","menyū","餐牌"],
-    "モ":["モデル","moderu","模特兒"],
-    "ヤ":["ヤード","yādo","碼"],
-    "ユ":["ユーモア","yūmoa","幽默"],
-    "ヨ":["ヨーグルト","yōguruto","乳酪"],
-    "ラ":["ラジオ","rajio","收音機"],
-    "リ":["リンゴ","ringo","蘋果"],
-    "ル":["ルール","rūru","規則"],
-    "レ":["レストラン","resutoran","餐廳"],
-    "ロ":["ロボット","robotto","機械人"],
-    "ワ":["ワイン","wain","葡萄酒"]
-  };
   const EXTRA_LABEL = { daku:'濁音', hand:'半濁音', youon:'拗音' };
 
   // 清音 + 濁點／半濁點／拗音小字 → 合成假名（聽聲模式用，不使列晒全部）
@@ -860,7 +764,7 @@
   const $ = id => document.getElementById(id);
   const modeSeg=$('modeSeg'), scopeSeg=$('scopeSeg');
   const readPanel=$('readPanel'), listenPanel=$('listenPanel');
-  const kanaEl=$('kana'), wordEl=$('word'), typeEl=$('typeLabel'), inputEl=$('answer'), checkBtn=$('checkBtn'), fbRead=$('fbRead');
+  const kanaEl=$('kana'), typeEl=$('typeLabel'), inputEl=$('answer'), checkBtn=$('checkBtn'), fbRead=$('fbRead');
   const padEl=$('pad'), listenPrompt=$('listenPrompt'), fbListen=$('fbListen');
   const listenRomaji=$('listenRomaji'), writeRomaji=$('writeRomaji');
   const writePanel=$('writePanel'), writePrompt=$('writePrompt'), fbWrite=$('fbWrite');
@@ -1205,13 +1109,6 @@
   function showTypeHint(){
     return true;      // 每個模式、每個字庫範圍都標明 ひらがな／カタカナ
   }
-  // 認字模式顯示例字（其他模式會洩漏答案，一律不顯示）
-  function renderWord(){
-    if(!current || mode!=='read' || !WORDS[current.k]){ wordEl.innerHTML=''; return; }
-    const [w, r, m] = WORDS[current.k];
-    wordEl.innerHTML = '<b>' + w + '</b>　' + r + ' <span>' + m + '</span>';
-  }
-
   function newQuestion(silent){
     answered=false; clearFeedback();
     if(scope==='wrong') buildPool();          // 錯題簿答對會少了字，每次重新計
@@ -1230,7 +1127,7 @@
       return;
     }
     emptyPanel.classList.remove('active');
-    current=pickNext(); renderRomaji(); renderWord();
+    current=pickNext(); renderRomaji();
     const hint = showTypeHint();
 
     if(mode==='read'){
