@@ -454,7 +454,7 @@
     <header>
       <div class="brand"><span class="jp">五十音</span><span class="sub">練習</span></div>
       <div class="hactions">
-        <span class="ver" id="verTag">1.3.8</span>
+        <span class="ver" id="verTag">1.3.9</span>
         <a class="iconbtn" id="wsBtn" href="collect.html" title="下載練習紙" aria-label="下載五十音練習紙">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 19h14"/></svg>
         </a>
@@ -886,18 +886,7 @@
   function updatePoolHint(){
     if(!poolHintEl) return;
     if(scope==='wrong'){ poolHintEl.innerHTML=''; return; }
-    const n = pool.length;
-    const cnt = {base:0, daku:0, hand:0, youon:0};
-    pool.forEach(o => { const c = o.cls; if(c==='daku'||c==='hand'||c==='youon') cnt[c]++; else cnt.base++; });
-    const parts = [];
-    if(cnt.base) parts.push('清音 '+cnt.base);
-    if(cnt.daku) parts.push('濁音 '+cnt.daku);
-    if(cnt.hand) parts.push('半濁音 '+cnt.hand);
-    if(cnt.youon) parts.push('拗音 '+cnt.youon);
-    const extra = (cnt.daku||cnt.hand||cnt.youon)
-      ? '（' + parts.join('・') + '）'
-      : '（只有清音；按上面「字類」可加入濁音／半濁音／拗音）';
-    poolHintEl.innerHTML = '題庫 <b>' + n + '</b> 字' + extra;
+    poolHintEl.innerHTML = '題庫 <b>' + pool.length + '</b> 字';
   }
   function buildPool(){
     if(scope==='hira') pool = packsFor('hira').flat();
