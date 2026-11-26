@@ -131,8 +131,8 @@
               所以這裡刻意用原生表單送出（會短暫跳到 FormSubmit，再返回本站）。
    LEAD_ENDPOINT：自架 Worker（AJAX）用；留空即可。
    ──────────────────────────────────────────────────────── */
-const FS_EMAIL = 'iammei624@gmail.com';
-const LEAD_ENDPOINT = '';
+const FS_EMAIL = '';                 // 已改用 Worker（AJAX），FormSubmit 停用
+const LEAD_ENDPOINT = 'https://kana-lead.kanadojo.workers.dev/api/lead';
 const PDF_URL = 'downloads/kana-worksheet.pdf';
 
 const form = document.getElementById('leadForm');
@@ -211,7 +211,7 @@ form.addEventListener('submit', async e=>{
     const res = await fetch(LEAD_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-      body: JSON.stringify({email, source: location.pathname})
+      body: JSON.stringify({email, source: location.pathname, _honey: form._honey.value})
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     sent();
