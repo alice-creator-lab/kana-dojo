@@ -64,7 +64,23 @@ export default {
       return json({ ok: false, error: 'send failed', detail: String(err.message || err) }, 502);
     }
 
-    // 2) 通知自己（失敗不影響訪客體驗）
+    // 2) 加入 Brevo 名單（失敗不影響訪客）
+    if (env.LIST_ID) {
+      try {
+        await fetch('https://api.brevo.com/v3/contacts', {
+          method: 'POST',
+          headers: { 'api-key': env.BREVO_KEY, 'content-type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify({
+            email,
+            listIds: [Number(env.LIST_ID)],
+            updateEnabled: true,
+            attributes: { SOURCE: 'kana-dojo-worksheet' },
+          }),
+        });
+      } catch (e) { /* 忽略 */ }
+    }
+
+    // 3) 通知自己（失敗不影響訪客體驗）
     try {
       await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
